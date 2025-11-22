@@ -1,43 +1,45 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "gpu-service-amine"
+        STUDENT_PORT = "8125"
+    }
 
     stages {
-
-        stage('GPU Sanity Test') {
+        stage('Checkout') {
             steps {
-                echo 'Installing required dependencies for cuda_test'
-                // TODO: write here
-                echo 'Running CUDA sanity check...'
-                // TODO: write here
+                checkout scm
             }
         }
 
-
-        stage('Build Docker Image') {
+        stage('Test CUDA Kernel') {
             steps {
-                // TODO: write here
-                echo "🐳 Building Docker image with GPU support..."
+                sh 'python3 test_cuda.py'
+            }
+        }
+
+        stage('Build Docker image') {
+            steps {
+                sh 'docker build -t ${IMAGE_NAME} .'
             }
         }
 
         stage('Deploy Container') {
             steps {
-                echo "🚀 Deploying Docker container..."
-                // TODO: write here
+                sh '''
+                    docker stop ${IMAGE_NAME} || true
+                    docker rm ${IMAGE_NAME} || true
+
+                    docker run -d --gpus all \
+                        --name ${IMAGE_NAME} \
+                        -e STUDENT_PORT=${STUDENT_PORT} \
+                        -p ${STUDENT_PORT}:${STUDENT_PORT} \
+                        -p 8000:8000 \
+                        ${IMAGE_NAME}
+                '''
             }
         }
     }
-
-    post {
-        success {
-            echo "🎉 Deployment completed successfully!"
-        }
-        failure {
-            echo "💥 Deployment failed. Check logs for errors."
-        }
-        always {
-            echo "🧾 Pipeline finished."
-        }
-    }
 }
+
