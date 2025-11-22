@@ -3,3 +3,4 @@ uvicorn[standard]
 numpy
 numba
 prometheus_client
+python-multipart
