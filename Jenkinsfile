@@ -49,7 +49,7 @@ pipeline {
 
                     echo ""
                     echo "==== last 50 lines of gpu-service-amine logs ===="
-                    docker logs --tail=50 gpu-service-amine || echo "No logs (container may have exited)"
+                    docker logs gpu-service-amine || echo "No logs (container may have exited)"
                 '''
             }
         }
